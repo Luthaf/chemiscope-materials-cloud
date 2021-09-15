@@ -53,6 +53,13 @@ main .embed-responsive-item {
     margin-left: -40%;
 }
 
+.powered-by-chemiscope {
+    font-size: x-small;
+    margin-top: 10px;
+    margin-right: 8em;
+    float: right;
+}
+
 #chemiscope-container {
     height: 100vh;
 }
