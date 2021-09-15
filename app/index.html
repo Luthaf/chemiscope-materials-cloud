@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+            name="description"
+            content="Interactive data visualization for materials and molecular databases. Correlate atomic structures and their properties, either online or with a portable app."
+        />
+
+        <title>Chemiscope</title>
+
+        <!-- jquery -->
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"
+            integrity="sha256-KM512VNnjElC30ehFwehXjx1YCHPiQkOPmqnrWtpccM="
+            crossorigin="anonymous"
+        ></script>
+
+        <!-- bootstrap -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap.min.css"
+            integrity="sha256-L/W5Wfqfa0sdBNIKN9cG6QA5F2qx4qICmU2VgLruv9Y="
+            crossorigin="anonymous"
+        />
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.min.js"
+            integrity="sha256-WqU1JavFxSAMcLP2WIOI+GB2zWmShMI82mTpLDcqFUg="
+            crossorigin="anonymous"
+        ></script>
+
+        <script type="text/javascript" src="pako_inflate.min.js"></script>
+        <script type="text/javascript" src="chemiscope.min.js"></script>
+
+        <link rel="stylesheet" href="chemiscope.css">
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="alert alert-danger pop-on-top" role="alert" id="error-display" style="display: none">
+                <button type="button" class="close" onclick="document.getElementById('error-display').style.display = 'none';">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p></p>
+                <details>
+                    <summary>Backtrace</summary>
+                    <p></p>
+                </details>
+            </div>
+
+            <div class="alert alert-warning pop-on-top" role="alert" id="warning-display" style="display: none">
+                <button type="button" class="close" onclick="document.getElementById('warning-display').style.display = 'none';">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p></p>
+            </div>
+            <div style="padding: 0.5rem 1.25rem">&nbsp;</div>
+
+            <div class="alert alert-info" role="alert" id="how-to-load" style="display: none">
+
+            </div>
+        </div>
+
+        <main id="chemiscope-container">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6" style="padding: 0">
+                        <div class="embed-responsive embed-responsive-1by1">
+                            <div id="chemiscope-meta"></div>
+                            <div id="chemiscope-map" class="embed-responsive-item" style="position: absolute"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6" style="padding: 0">
+                        <div class="embed-responsive embed-responsive-5by7">
+                            <div class="embed-responsive-item">
+                                <!-- height: 0 below is a hack to force safari to
+                                respect height: 100% on the children
+                                https://github.com/philipwalton/flexbugs/issues/197#issuecomment-378908438
+                                -->
+                                <div id="chemiscope-structure" style="height: 0"></div>
+                                <div id="chemiscope-info"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </body>
+
+    <script type="text/javascript">
+        /**
+         * Create an URL that can be used to load data from the `external` URL
+         * working around Same-Origin policy by using https://allorigins.win/ to
+         * redirect the request for us.
+         */
+        function externalDataUrl(external) {
+            return `https://api.allorigins.win/raw?url=${encodeURIComponent(external)}`;
+        }
+
+        function displayError(error) {
+            const display = document.getElementById('error-display');
+            display.style.display = 'block';
+            display.getElementsByTagName('p')[0].innerText = error.toString();
+            const stacktrace = display.getElementsByTagName('details')[0];
+            stacktrace.getElementsByTagName('p')[0].innerText = error.stack || '';
+        }
+
+        function displayWarning(message) {
+            const display = getByID('warning-display');
+            display.getElementsByTagName('p')[0].innerText = message;
+            display.style.display = 'block';
+
+            // automatically remove the warning after 4s
+            setTimeout(() => {
+                display.style.display = 'none';
+            }, 4000);
+        }
+
+        function readJSON(path, buffer) {
+            let text;
+            if (path.endsWith('.gz')) {
+                text = pako.inflate(new Uint8Array(buffer), { to: 'string' });
+            } else {
+                const decoder = new TextDecoder('utf-8');
+                text = decoder.decode(buffer);
+            }
+
+            // parse potential NaN values in the JSON file (these are create by
+            // python json module despite not being part of the spec)
+            return JSON.parse(text.replace(/\bNaN\b/g, '"***NaN***"'), (key, value) => {
+                return value === '***NaN***' ? NaN : value;
+            });
+        }
+
+        async function loadDataset(url) {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw Error(`unable to load file at '${url}'`);
+            }
+            const buffer = await response.arrayBuffer();
+
+            if (buffer.byteLength === 0) {
+                // Until https://github.com/gnuns/allOrigins/issues/70 is resolved,
+                // we can not check if the URL does not exists, so let's assume an
+                // error if the buffer is empty
+                if (url.startsWith('https://api.allorigins.win/raw?')) {
+                    throw Error(`unable to load file at '${url}'`);
+                }
+            }
+
+            const dataset = readJSON(url, buffer);
+
+            const config = {
+                map: 'chemiscope-map',
+                info: 'chemiscope-info',
+                meta: 'chemiscope-meta',
+                structure: 'chemiscope-structure',
+                // take settings from the dataset if they exist
+                settings: dataset.settings || {},
+            };
+
+            const visualizer = await Chemiscope.DefaultVisualizer.load(config, dataset);
+
+            visualizer.structure.positionSettingsModal = (rect) => {
+                const structureRect = document.getElementById('chemiscope-structure').getBoundingClientRect();
+                return {
+                    top: structureRect.top,
+                    left: structureRect.left - rect.width - 25,
+                };
+            };
+
+            visualizer.map.positionSettingsModal = (rect) => {
+                const mapRect = document.getElementById('chemiscope-map').getBoundingClientRect();
+
+                let left;
+                if (window.innerWidth < 1400) {
+                    // clip modal to the right if it overflows
+                    left = window.innerWidth - rect.width - 10;
+                } else {
+                    left = mapRect.left + mapRect.width + 25;
+                }
+
+                return {
+                    top: mapRect.top,
+                    left: left,
+                };
+            };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // display uncaught Errors from synchronous code
+            window.onerror = (msg, url, line, col, error) => {
+                if (error !== undefined) {
+                    displayError(error);
+                }
+            };
+
+            // display uncaught Errors from async code
+            window.onunhandledrejection = (error) => {
+                displayError(error.reason);
+            };
+
+            const url = new URL(window.location.href);
+            let external = url.searchParams.get('load');
+            if (!external) {
+                const load = document.getElementById('how-to-load');
+                load.style.display = "block";
+                load.innerHTML = `
+                    <p>You did not specify which dataset to load, an example will
+                    be loaded instead. To visualize a specific dataset, use the
+                    <code>?load=</code> GET parameter in the URL, i.e.
+                    <code>${window.location.href}?load=https://chemiscope.org/examples/Arginine-Dipeptide.json.gz</code></p>
+                `
+
+                external = "https://chemiscope.org/examples/Arginine-Dipeptide.json.gz";
+            }
+
+            Chemiscope.addWarningHandler((message) => displayWarning(message));
+
+            loadDataset(externalDataUrl(external));
+        });
+    </script>
+</html>

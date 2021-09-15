@@ -1,0 +1,78 @@
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+main.container-fluid {
+    margin: 1.5em 0em calc(1.5em + 60px) 0em;
+    width: 100%;
+}
+
+@media screen and (min-width: 1200px) {
+    main.container-fluid {
+        margin: 2em 2em calc(2em + 60px) 2em;
+        width: calc(100% - 4em);
+    }
+}
+
+@media screen and (min-width: 1500px) {
+    main.container-fluid {
+        margin: 2em auto calc(2em + 60px) auto;
+        width: 1500px;
+    }
+}
+
+main .embed-responsive {
+    margin: auto;
+}
+
+main .embed-responsive-item {
+    display: flex;
+    flex-flow: column;
+}
+
+.embed-responsive-5by7::before {
+    padding-top: 140%;
+}
+
+@media screen and (min-width: 768px) {
+    .embed-responsive-5by7 {
+        max-height: calc(100vh - 4em - 120px);
+    }
+
+    main .embed-responsive {
+        max-width: calc(100vh - 4em - 120px);
+    }
+}
+
+.pop-on-top {
+    z-index: 100;
+    position: absolute;
+    width: 80%;
+    left: 50%;
+    margin-left: -40%;
+}
+
+#chemiscope-container {
+    height: 100vh;
+}
+
+#chemiscope-meta {
+    position: absolute;
+    top: 0;
+    left: 2em;
+    font-size: 16pt;
+}
+
+#chemiscope-map {
+    display: block;
+}
+
+#chemiscope-structure {
+    flex: 1 1 auto;
+}
+
+#chemiscope-info {
+    flex: 0 1 auto;
+    width: 100%;
+}
