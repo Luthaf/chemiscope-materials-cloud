@@ -54,7 +54,7 @@ main .embed-responsive-item {
 }
 
 .powered-by-chemiscope {
-    font-size: x-small;
+    font-size: 14px;
     margin-top: 10px;
     margin-right: 8em;
     float: right;
@@ -78,6 +78,11 @@ main .embed-responsive-item {
 #chemiscope-info {
     flex: 0 1 auto;
     width: 100%;
+}
+
+#how-to-load p {
+    margin: 0;
+    text-align: center;
 }
 
 /* reproduction of materials cloud navbar with bootstrap 4 */

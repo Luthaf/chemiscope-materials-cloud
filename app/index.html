@@ -24,6 +24,13 @@
         ></script>
 
         <!-- bootstrap -->
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"
+            integrity="sha512-ubuT8Z88WxezgSqf3RLuNi5lmjstiJcyezx34yIU2gAHonIi27Na7atqzUZCOoY4CExaoFumzOsFQ2Ch+I/HCw=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        ></script>
+
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap.min.css"
@@ -242,6 +249,22 @@
             };
         }
 
+        function showLoadedFile(external) {
+            const url = new URL(external);
+
+            const fileName = document.getElementById('loaded-file-name');
+            fileName.innerHTML = `displaying data from
+            <span><a href="${external}"><code
+                id="loaded-file-name-tooltip"
+                data-toggle="tooltip"
+                title="${external}"
+            >
+                ${url.host}
+            </code></a></span>`;
+
+            $('#loaded-file-name-tooltip').tooltip();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             // display uncaught Errors from synchronous code
             window.onerror = (msg, url, line, col, error) => {
@@ -249,29 +272,26 @@
                     displayError(error);
                 }
             };
-
             // display uncaught Errors from async code
             window.onunhandledrejection = (error) => {
                 displayError(error.reason);
             };
-
             const url = new URL(window.location.href);
             let external = url.searchParams.get('load');
             if (!external) {
                 const load = document.getElementById('how-to-load');
-                load.style.display = "block";
+                load.style.display = 'block';
                 load.innerHTML = `
-                    <p>You did not specify which dataset to load, an example will
-                    be loaded instead. To visualize a specific dataset, use the
-                    <code>?load=</code> GET parameter in the URL, i.e.
-                    <code>${window.location.href}?load=https://chemiscope.org/examples/Arginine-Dipeptide.json.gz</code></p>
-                `
-
-                external = "https://chemiscope.org/examples/Arginine-Dipeptide.json.gz";
+                    <p>Loading example file. To visualize a specific dataset, use the
+                    <code>?load=</code> GET parameter in the URL:</p>
+                    <p><code>${window.location.href}?load=https://chemiscope.org/examples/Arginine-Dipeptide.json.gz</code></p>
+                `;
+                external = 'https://chemiscope.org/examples/Arginine-Dipeptide.json.gz';
             }
 
-            Chemiscope.addWarningHandler((message) => displayWarning(message));
+            showLoadedFile(external);
 
+            Chemiscope.addWarningHandler((message) => displayWarning(message));
             loadDataset(externalDataUrl(external));
         });
     </script>
