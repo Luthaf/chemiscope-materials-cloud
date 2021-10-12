@@ -39,10 +39,58 @@
         <script type="text/javascript" src="pako_inflate.min.js"></script>
         <script type="text/javascript" src="chemiscope.min.js"></script>
 
-        <link rel="stylesheet" href="chemiscope.css">
+        <link rel="stylesheet" href="chemiscope.css" />
     </head>
 
     <body>
+        <nav class="mc-navbar navbar navbar-expand-lg">
+            <a class="navbar-brand" href="https://www.materialscloud.org/home">
+                <img src="static/mcloud_logo.png" alt="materials cloud logo" style="height: 50px" />
+            </a>
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-toggle="collapse"
+                data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://www.materialscloud.org/learn">LEARN</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="https://www.materialscloud.org/work">WORK</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://www.materialscloud.org/discover">DISCOVER</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://www.materialscloud.org/explore">EXPLORE</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://www.materialscloud.org/archive">ARCHIVE</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="container-fluid">
+            <nav aria-label="breadcrumb" style="line-height: 24px">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="https://www.materialscloud.org/work">Work</a></li>
+                    <li class="breadcrumb-item"><a href="https://www.materialscloud.org/work/tools">Tools</a></li>
+                    <li class="breadcrumb-item active" aria-current="page"><a href="#">Chemiscope</a></li>
+                    <li class="breadcrumb-item" id="loaded-file-name"></li>
+                </ol>
+            </nav>
+        </div>
+
         <div class="container">
             <div class="alert alert-danger pop-on-top" role="alert" id="error-display" style="display: none">
                 <button type="button" class="close" onclick="document.getElementById('error-display').style.display = 'none';">
@@ -61,11 +109,8 @@
                 </button>
                 <p></p>
             </div>
-            <div style="padding: 0.5rem 1.25rem">&nbsp;</div>
 
-            <div class="alert alert-info" role="alert" id="how-to-load" style="display: none">
-
-            </div>
+            <div class="alert alert-info" role="alert" id="how-to-load" style="display: none"></div>
         </div>
 
         <main id="chemiscope-container">
@@ -88,13 +133,10 @@
                                 <div id="chemiscope-structure" style="height: 0"></div>
                                 <div id="chemiscope-info"></div>
                             </div>
-
                         </div>
 
                         <span class="powered-by-chemiscope">Powered by <a href="https://chemiscope.org">chemiscope</a></span>
                     </div>
-
-
                 </div>
             </div>
         </main>
