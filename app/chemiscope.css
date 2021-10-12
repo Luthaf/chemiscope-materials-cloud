@@ -91,6 +91,10 @@ main .embed-responsive-item {
     margin-top: 40px;
 }
 
+.tooltip-inner {
+    max-width: 700px;
+}
+
 /* reproduction of materials cloud navbar with bootstrap 4 */
 
 .mc-navbar {
