@@ -92,7 +92,7 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="https://www.materialscloud.org/work">Work</a></li>
                     <li class="breadcrumb-item"><a href="https://www.materialscloud.org/work/tools">Tools</a></li>
-                    <li class="breadcrumb-item active" aria-current="page"><a href="#">Chemiscope</a></li>
+                    <li class="breadcrumb-item active" aria-current="page"><a id="chemiscope-link" href="#">Chemiscope</a></li>
                     <li class="breadcrumb-item" id="loaded-file-name"></li>
                 </ol>
             </nav>
@@ -280,6 +280,9 @@
             window.onunhandledrejection = (error) => {
                 displayError(error.reason);
             };
+
+            document.getElementById('chemiscope-link').href = window.location.pathname;
+
             const url = new URL(window.location.href);
             let external = url.searchParams.get('load');
             if (!external) {
