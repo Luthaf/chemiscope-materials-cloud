@@ -85,6 +85,12 @@ main .embed-responsive-item {
     text-align: center;
 }
 
+#spinner {
+    display: block;
+    margin: auto;
+    margin-top: 40px;
+}
+
 /* reproduction of materials cloud navbar with bootstrap 4 */
 
 .mc-navbar {

@@ -121,6 +121,8 @@
         </div>
 
         <main id="chemiscope-container">
+            <img id="spinner" width="120" src="static/mcloud_spinner.svg" alt="" />
+
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-6" style="padding: 0">
@@ -247,6 +249,8 @@
                     left: left,
                 };
             };
+
+            document.getElementById('spinner').style.display = 'none';
         }
 
         function showLoadedFile(external) {
