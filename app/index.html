@@ -172,9 +172,9 @@
         }
 
         function displayWarning(message) {
-            const display = getByID('warning-display');
-            display.getElementsByTagName('p')[0].innerText = message;
+            const display = document.getElementById('warning-display');
             display.style.display = 'block';
+            display.getElementsByTagName('p')[0].innerText = message;
 
             // automatically remove the warning after 4s
             setTimeout(() => {
