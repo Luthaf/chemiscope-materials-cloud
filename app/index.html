@@ -98,6 +98,10 @@
                     <li class="breadcrumb-item" id="loaded-file-name"></li>
                 </ol>
             </nav>
+            <div id="loaded-from-materialscloud" style="display: none;">
+
+            </div>
+
         </div>
 
         <div class="container">
@@ -259,7 +263,7 @@
             const url = new URL(external);
 
             const fileName = document.getElementById('loaded-file-name');
-            fileName.innerHTML = `displaying data from
+            fileName.innerHTML = `data from
             <span><a href="${external}"><code
                 id="loaded-file-name-tooltip"
                 data-toggle="tooltip"
@@ -269,6 +273,12 @@
             </code></a></span>`;
 
             $('#loaded-file-name-tooltip').tooltip();
+
+            if (url.host == "archive.materialscloud.org") {
+                const mcInfo = document.getElementById('loaded-from-materialscloud');
+                mcInfo.style.display = "block";
+                mcInfo.innerText = `showing '${url.searchParams.get("filename")}' from materialscloud archive entry #${url.searchParams.get("record_id")}`
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {

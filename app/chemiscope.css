@@ -85,6 +85,14 @@ main .embed-responsive-item {
     text-align: center;
 }
 
+#loaded-from-materialscloud {
+    margin-top: -10px;
+    margin-bottom: 15px;
+    margin-left: 1em;
+    font-style: italic;
+    font-size: smaller;
+}
+
 #spinner {
     display: block;
     margin: auto;
