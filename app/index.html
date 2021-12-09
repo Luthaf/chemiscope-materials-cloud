@@ -280,7 +280,12 @@
             if (url.host == "archive.materialscloud.org") {
                 const mcInfo = document.getElementById('loaded-from-materialscloud');
                 mcInfo.style.display = "block";
-                mcInfo.innerText = `showing '${url.searchParams.get("filename")}' from materialscloud archive entry #${url.searchParams.get("record_id")}`
+                mcInfo.innerHTML = `
+                    showing '${url.searchParams.get("filename")}' from
+                    materialscloud archive entry <a href="https://doi.org/${url.searchParams.get("materials_cloud_doi")}">
+                        ${url.searchParams.get("materials_cloud_doi")}
+                    </a>
+                `;
             }
         }
 

@@ -93,6 +93,10 @@ main .embed-responsive-item {
     font-size: smaller;
 }
 
+#loaded-from-materialscloud a {
+    color: gray;
+}
+
 #spinner {
     display: block;
     margin: auto;
