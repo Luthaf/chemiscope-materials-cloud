@@ -186,10 +186,14 @@
             }, 4000);
         }
 
-        function readJSON(path, buffer) {
+        function readJSON(buffer) {
+            const bytes = new Uint8Array(buffer);
+
             let text;
-            if (path.endsWith('.gz')) {
-                text = pako.inflate(new Uint8Array(buffer), { to: 'string' });
+            // gzip files starts with `1f 8b`, and this is an invalid
+            // combination for UTF-8 JSON
+            if (bytes[0] == 0x1f && bytes[1] == 0x8b) {
+                text = pako.inflate(bytes, { to: 'string' });
             } else {
                 const decoder = new TextDecoder('utf-8');
                 text = decoder.decode(buffer);
@@ -218,8 +222,7 @@
                 }
             }
 
-            const dataset = readJSON(url, buffer);
-
+            const dataset = readJSON(buffer);
             const config = {
                 map: 'chemiscope-map',
                 info: 'chemiscope-info',
