@@ -47,6 +47,7 @@
         <script type="text/javascript" src="chemiscope.min.js"></script>
 
         <link rel="stylesheet" href="chemiscope.css" />
+        <link rel="icon" type="image/png" href="chemiscope-icon.png" sizes="32x32" />
     </head>
 
     <body>
@@ -66,7 +67,7 @@
 
         <nav class="mc-navbar navbar navbar-expand-sm">
             <ul class="navbar-nav">
-                <li class="nav-item"></liclass>
+                <li class="nav-item">
                     <a class="navbar-brand" href="https://www.materialscloud.org/home">
                         <img src="static/mcloud_logo.png" alt="materials cloud logo" style="height: 50px" />
                     </a>
@@ -98,10 +99,7 @@
                     <li class="breadcrumb-item" id="loaded-file-name"></li>
                 </ol>
             </nav>
-            <div id="loaded-from-materialscloud" style="display: none;">
-
-            </div>
-
+            <div id="loaded-from-materialscloud" style="display: none"></div>
         </div>
 
         <div class="container">
@@ -164,7 +162,14 @@
          * redirect the request for us.
          */
         function externalDataUrl(external) {
-            return `https://api.allorigins.win/raw?url=${encodeURIComponent(external)}`;
+            const url = new URL(external);
+            if (url.hostname.includes('materialscloud.org')) {
+                // We can directly load data from materialscloud since they set
+                // the right CORS headers
+                return external;
+            } else {
+                return `https://api.allorigins.win/raw?url=${encodeURIComponent(external)}`;
+            }
         }
 
         function displayError(error) {
@@ -277,13 +282,13 @@
 
             $('#loaded-file-name-tooltip').tooltip();
 
-            if (url.host == "archive.materialscloud.org") {
+            if (url.host == 'archive.materialscloud.org') {
                 const mcInfo = document.getElementById('loaded-from-materialscloud');
-                mcInfo.style.display = "block";
+                mcInfo.style.display = 'block';
                 mcInfo.innerHTML = `
-                    showing '${url.searchParams.get("filename")}' from
-                    materialscloud archive entry <a href="https://doi.org/${url.searchParams.get("materials_cloud_doi")}">
-                        ${url.searchParams.get("materials_cloud_doi")}
+                    showing '${url.searchParams.get('filename')}' from
+                    materialscloud archive entry <a href="https://doi.org/${url.searchParams.get('materials_cloud_doi')}">
+                        ${url.searchParams.get('materials_cloud_doi')}
                     </a>
                 `;
             }
