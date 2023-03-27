@@ -98,6 +98,8 @@ main .embed-responsive-item {
 }
 
 #spinner {
+    width: 80%;
+    text-align: center;
     display: block;
     margin: auto;
     margin-top: 40px;

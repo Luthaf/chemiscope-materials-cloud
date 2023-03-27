@@ -103,7 +103,7 @@
         </div>
 
         <div class="container">
-            <div class="alert alert-danger pop-on-top" role="alert" id="error-display" style="display: none">
+            <div class="alert alert-danger pop-on-top" role="alert" id="error-display" style="display: none; padding: 1em 3em; z-index: 10000">
                 <button type="button" class="close" onclick="document.getElementById('error-display').style.display = 'none';">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -114,7 +114,7 @@
                 </details>
             </div>
 
-            <div class="alert alert-warning pop-on-top" role="alert" id="warning-display" style="display: none">
+            <div class="alert alert-warning pop-on-top" role="alert" id="warning-display" style="display: none; padding: 1em 3em">
                 <button type="button" class="close" onclick="document.getElementById('warning-display').style.display = 'none';">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -125,7 +125,10 @@
         </div>
 
         <main id="chemiscope-container">
-            <img id="spinner" width="120" src="static/mcloud_spinner.svg" alt="" />
+            <div id="spinner">
+                <img width="120" src="static/mcloud_spinner.svg" alt="" style="margin: auto; display: block" />
+                <p id="loading-text"></p>
+            </div>
 
             <div class="container-fluid">
                 <div class="row">
@@ -180,30 +183,41 @@
             stacktrace.getElementsByTagName('p')[0].innerText = error.stack || '';
         }
 
-        function displayWarning(message) {
+        function displayWarning(message, timeout = 4000) {
             const display = document.getElementById('warning-display');
             display.style.display = 'block';
             display.getElementsByTagName('p')[0].innerText = message;
 
-            // automatically remove the warning after 4s
-            setTimeout(() => {
-                display.style.display = 'none';
-            }, 4000);
+            if (timeout > 0) {
+                // automatically remove the warning after the timeout
+                setTimeout(() => {
+                    display.style.display = 'none';
+                }, timeout);
+            }
         }
 
-        function readJSON(buffer) {
+        async function readJSON(buffer) {
             const bytes = new Uint8Array(buffer);
 
             let text;
             // gzip files starts with `1f 8b`, and this is an invalid
             // combination for UTF-8 JSON
             if (bytes[0] == 0x1f && bytes[1] == 0x8b) {
-                text = pako.inflate(bytes, { to: 'string' });
+                document.getElementById('loading-text').innerText += '\nDecompressing …';
+                await new Promise((r) => setTimeout(r, 10));
+
+                try {
+                    text = pako.inflate(bytes, { to: 'string' });
+                } catch (error) {
+                    throw Error('Failed to decompress the data: the file is too big or invalid');
+                }
             } else {
                 const decoder = new TextDecoder('utf-8');
                 text = decoder.decode(buffer);
             }
 
+            document.getElementById('loading-text').innerText += '\nParsing JSON …';
+            await new Promise((r) => setTimeout(r, 10));
             // parse potential NaN values in the JSON file (these are create by
             // python json module despite not being part of the spec)
             return JSON.parse(text.replace(/\bNaN\b/g, '"***NaN***"'), (key, value) => {
@@ -216,18 +230,60 @@
             if (!response.ok) {
                 throw Error(`unable to load file at '${url}'`);
             }
-            const buffer = await response.arrayBuffer();
 
-            if (buffer.byteLength === 0) {
-                // Until https://github.com/gnuns/allOrigins/issues/70 is resolved,
-                // we can not check if the URL does not exists, so let's assume an
-                // error if the buffer is empty
-                if (url.startsWith('https://api.allorigins.win/raw?')) {
-                    throw Error(`unable to load file at '${url}'`);
+            // contentLength might be 0 if the server does not set this header,
+            // but materialscloud archive does set it and that's our main
+            // use case anyway
+            const contentLength = +response.headers.get('Content-Length');
+
+            const formatSize = (size) => {
+                return `${(size / (1024 * 1024)).toFixed(2)}MiB`;
+            };
+
+            let buffer;
+            if (contentLength == 0) {
+                document.getElementById('loading-text').innerText = `Loading data: unknown size …`;
+                buffer = await response.arrayBuffer();
+                if (buffer.byteLength === 0) {
+                    // Until https://github.com/gnuns/allOrigins/issues/70 is resolved,
+                    // we can not check if the URL does not exists, so let's assume an
+                    // error if the buffer is empty
+                    if (url.startsWith('https://api.allorigins.win/raw?')) {
+                        throw Error(`unable to load file at '${url}'`);
+                    }
+                }
+            } else {
+                if (contentLength / (1024 * 1024) > 300) {
+                    displayWarning(
+                        `You are trying to load a very large file (${formatSize(contentLength)}), ` +
+                            `JavaScript might be have access to enough memory to process it`,
+                        -1
+                    );
+                }
+
+                // pre-allocate the data for the file, fill it below
+                buffer = new ArrayBuffer(contentLength);
+                let data = new Uint8Array(buffer);
+
+                const reader = response.body.getReader();
+                let receivedLength = 0;
+                while (true) {
+                    const message = `Loading data: ${formatSize(receivedLength)} out of ${formatSize(contentLength)} …`;
+                    document.getElementById('loading-text').innerText = message;
+                    // only update every 250ms
+                    await new Promise((r) => setTimeout(r, 250));
+
+                    const { done, value } = await reader.read();
+
+                    if (done) {
+                        break;
+                    }
+                    data.set(value, receivedLength);
+                    receivedLength += value.length;
                 }
             }
 
-            const dataset = readJSON(buffer);
+            const dataset = await readJSON(buffer);
             const config = {
                 map: 'chemiscope-map',
                 info: 'chemiscope-info',
@@ -237,6 +293,8 @@
                 settings: dataset.settings || {},
             };
 
+            document.getElementById('loading-text').innerText += '\nCreating chemiscope visualizer …';
+            await new Promise((r) => setTimeout(r, 10));
             const visualizer = await Chemiscope.DefaultVisualizer.load(config, dataset);
 
             visualizer.structure.positionSettingsModal = (rect) => {
