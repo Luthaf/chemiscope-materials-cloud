@@ -256,7 +256,7 @@
                 if (contentLength / (1024 * 1024) > 300) {
                     displayWarning(
                         `You are trying to load a very large file (${formatSize(contentLength)}), ` +
-                            `JavaScript might be have access to enough memory to process it`,
+                            `JavaScript might not have access to enough memory to process it`,
                         -1
                     );
                 }
