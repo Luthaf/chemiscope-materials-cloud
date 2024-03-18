@@ -267,20 +267,29 @@
 
                 const reader = response.body.getReader();
                 let receivedLength = 0;
-                while (true) {
-                    const message = `Loading data: ${formatSize(receivedLength)} out of ${formatSize(contentLength)} …`;
-                    document.getElementById('loading-text').innerText = message;
-                    // only update every 250ms
-                    await new Promise((r) => setTimeout(r, 250));
 
-                    const { done, value } = await reader.read();
+                const load = async () => {
+                    while (true) {
+                        const { done, value } = await reader.read();
 
-                    if (done) {
-                        break;
+                        if (done) {
+                            break;
+                        }
+                        data.set(value, receivedLength);
+                        receivedLength += value.length;
                     }
-                    data.set(value, receivedLength);
-                    receivedLength += value.length;
-                }
+                };
+
+                const display = async () => {
+                    while (true) {
+                        const message = `Loading data: ${formatSize(receivedLength)} out of ${formatSize(contentLength)} …`;
+                        document.getElementById('loading-text').innerText = message;
+                        // only update every 250ms
+                        await new Promise((r) => setTimeout(r, 100));
+                    }
+                };
+
+                await Promise.any([load(), display()]);
             }
 
             const dataset = await readJSON(buffer);
