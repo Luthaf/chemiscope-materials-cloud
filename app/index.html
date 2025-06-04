@@ -349,7 +349,7 @@
 
             $('#loaded-file-name-tooltip').tooltip();
 
-            if (url.host == 'archive.materialscloud.org') {
+            if (url.host == 'archive.materialscloud.org' || url.host == 'staging-mcarchive.materialscloud.org') {
                 const mcInfo = document.getElementById('loaded-from-materialscloud');
                 mcInfo.style.display = 'block';
                 mcInfo.innerHTML = `
