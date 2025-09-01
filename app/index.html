@@ -225,7 +225,7 @@
             });
         }
 
-        async function loadDataset(url) {
+        async function loadDataset(url, warningsHandler) {
             const response = await fetch(url);
             if (!response.ok) {
                 throw Error(`unable to load file at '${url}'`);
@@ -254,7 +254,7 @@
                 }
             } else {
                 if (contentLength / (1024 * 1024) > 300) {
-                    displayWarning(
+                    warningsHandler.sendMessage(
                         `You are trying to load a very large file (${formatSize(contentLength)}), ` +
                             `JavaScript might not have access to enough memory to process it`,
                         -1
@@ -304,7 +304,7 @@
 
             document.getElementById('loading-text').innerText += '\nCreating chemiscope visualizer …';
             await new Promise((r) => setTimeout(r, 10));
-            const visualizer = await Chemiscope.DefaultVisualizer.load(config, dataset);
+            const visualizer = await Chemiscope.DefaultVisualizer.load(config, dataset, warningsHandler);
 
             visualizer.structure.positionSettingsModal = (rect) => {
                 const structureRect = document.getElementById('chemiscope-structure').getBoundingClientRect();
@@ -390,8 +390,11 @@
 
             showLoadedFile(external);
 
-            Chemiscope.addWarningHandler((message) => displayWarning(message));
-            loadDataset(externalDataUrl(external));
+            const warnings = new Chemiscope.Warnings();
+            warnings.defaultTimeout = 4000;
+            warnings.addHandler(displayWarning);
+
+            loadDataset(externalDataUrl(external), warnings);
         });
     </script>
 </html>

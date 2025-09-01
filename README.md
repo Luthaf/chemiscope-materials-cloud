@@ -1,6 +1,5 @@
 # Chemiscope deployment as a Materials Cloud tool
 
-
 ## Checking changes locally
 
 You'll need docker installed. Then if you run the command below & navigate to
@@ -13,4 +12,5 @@ docker build -t chemiscope . && docker run -p 8080:80 --rm chemiscope
 
 ## Updating chemiscope
 
-TODO
+You'll need to update the chemiscope.min.js in `app`, and make any other
+relevant changes to the HTML and CSS.
