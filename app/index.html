@@ -349,15 +349,19 @@
 
             $('#loaded-file-name-tooltip').tooltip();
 
-            if (url.host == 'archive.materialscloud.org' || url.host == 'staging-mcarchive.materialscloud.org') {
+            // only show mcInfo block comment block if from mc and ?minimal=false
+
+            const params = new URLSearchParams(window.location.search);
+            const minimalMode = params.get('minimal') === 'true';
+            if ((url.host === 'archive.materialscloud.org' || url.host === 'staging-mcarchive.materialscloud.org') && !minimalMode) {
                 const mcInfo = document.getElementById('loaded-from-materialscloud');
                 mcInfo.style.display = 'block';
                 mcInfo.innerHTML = `
-                    showing '${url.searchParams.get('filename')}' from
-                    materialscloud archive entry <a href="https://doi.org/${url.searchParams.get('materials_cloud_doi')}">
-                        ${url.searchParams.get('materials_cloud_doi')}
-                    </a>
-                `;
+                showing '${url.searchParams.get('filename')}' from
+                materialscloud archive entry <a href="https://doi.org/${url.searchParams.get('materials_cloud_doi')}">
+                    ${url.searchParams.get('materials_cloud_doi')}
+                </a>
+            `;
             }
         }
 
@@ -396,5 +400,18 @@
 
             loadDataset(externalDataUrl(external), warnings);
         });
+
+        // Hide navbar and breadcrumbs if ?minimal=true
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('minimal') === 'true') {
+            const nav = document.querySelector('.mc-navbar');
+            if (nav) nav.style.display = 'none';
+
+            const breadcrumbs = document.querySelector('nav[aria-label="breadcrumb"]');
+            if (breadcrumbs) breadcrumbs.style.display = 'none';
+
+            const mcInfo = document.getElementById('loaded-from-materialscloud');
+            if (mcInfo) mcInfo.style.display = 'none';
+        }
     </script>
 </html>
